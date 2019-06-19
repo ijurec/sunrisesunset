@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Sunrise Sunset</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_show_locations">My locations</string>
+    <string name="label_current_location">Your current location:</string>
+    <string name="api_url">https://api.sunrise-sunset.org/</string>
+    <string name="attribution_url">https://sunrise-sunset.org</string>
+    <string name="text_search_empty_view">There are no data</string>
+</resources>
