@@ -1,17 +1,18 @@
-package com.task.sunrisesunset;
+package com.task.sunrisesunset.services;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.text.TextUtils;
 import android.util.Log;
 
+import com.task.sunrisesunset.R;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,7 +23,7 @@ public class FetchAddressIntentService extends IntentService {
     public static final int SUCCESS_RESULT = 0;
     public static final int FAILURE_RESULT = 1;
     public static final String PACKAGE_NAME =
-            "com.google.android.gms.location.sample.locationaddress";
+            "package com.task.sunrisesunset.services";
     public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
     public static final String RESULT_DATA_KEY = PACKAGE_NAME +
             ".RESULT_DATA_KEY";
@@ -57,11 +58,11 @@ public class FetchAddressIntentService extends IntentService {
                     1);
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
-//            errorMessage = getString(R.string.service_not_available);
+            errorMessage = getString(R.string.service_address_not_available);
             Log.e(TAG, errorMessage, ioException);
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
-//            errorMessage = getString(R.string.invalid_lat_long_used);
+            errorMessage = getString(R.string.invalid_lat_long_used);
             Log.e(TAG, errorMessage + ". " +
                     "Latitude = " + location.getLatitude() +
                     ", Longitude = " +
@@ -71,7 +72,7 @@ public class FetchAddressIntentService extends IntentService {
         // Handle case where no address was found.
         if (addresses == null || addresses.size()  == 0) {
             if (errorMessage.isEmpty()) {
-//                errorMessage = getString(R.string.no_address_found);
+                errorMessage = getString(R.string.no_address_found);
                 Log.e(TAG, errorMessage);
             }
             deliverResultToReceiver(FAILURE_RESULT, errorMessage);
@@ -80,7 +81,7 @@ public class FetchAddressIntentService extends IntentService {
 //            String cityName = address.getLocality();
             String cityName = address.getAddressLine(0);
 
-//            Log.i(TAG, getString(R.string.address_found));
+            Log.i(TAG, getString(R.string.address_found));
             deliverResultToReceiver(SUCCESS_RESULT, cityName);
         }
     }
@@ -89,5 +90,12 @@ public class FetchAddressIntentService extends IntentService {
         Bundle bundle = new Bundle();
         bundle.putString(RESULT_DATA_KEY, message);
         mReceiver.send(resultCode, bundle);
+    }
+
+    public static void startFetchAddressIntentService(Context context, ResultReceiver resultReceiver, Location location) {
+        Intent intent = new Intent(context, FetchAddressIntentService.class);
+        intent.putExtra(RECEIVER, resultReceiver);
+        intent.putExtra(LOCATION_DATA_EXTRA, location);
+        context.startService(intent);
     }
 }

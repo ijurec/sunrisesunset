@@ -6,4 +6,17 @@
     <string name="api_url">https://api.sunrise-sunset.org/</string>
     <string name="attribution_url">https://sunrise-sunset.org</string>
     <string name="text_search_empty_view">There are no data</string>
+    <string name="service_address_not_available">FetchAddressService is not available</string>
+    <string name="service_location_not_available">Network or other I/O problems</string>
+    <string name="invalid_lat_long_used">Invalid lat/long are used</string>
+    <string name="no_address_found">There is no address found</string>
+    <string name="address_found">The address was found</string>
+    <string name="coordinates_found">The coordinates were found</string>
+    <string name="invalid_address_param_used">Invalid address parameter are used</string>
+    <string name="action_search_meal">Search a meal</string>
+    <string name="search_location_hint">Search location</string>
+    <string name="action_add_location">Add location</string>
+    <string name="action_share_location">Share</string>
+    <string name="message_network_issue">Network issue occurred</string>
+    <string name="label_location">Location:</string>
 </resources>

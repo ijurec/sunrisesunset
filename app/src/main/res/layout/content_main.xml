@@ -1,170 +1,184 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/content"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".MainActivity"
-    tools:showIn="@layout/activity_main">
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <android.support.constraint.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="30dp">
+        android:layout_height="match_parent"
+        android:id="@+id/content">
 
-    <TextView
-        android:id="@+id/text_current_location_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="@string/label_current_location"
-        android:textSize="23sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="30dp">
 
-    <TextView
-        android:id="@+id/text_current_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/text_current_location_label"
-        app:layout_constraintStart_toStartOf="@+id/text_current_location_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_current_location_label"
-        tools:text="Ivano - Frankivsk" />
+            <TextView
+                android:id="@+id/text_current_location_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:text="@string/label_current_location"
+                android:textSize="23sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/text_latitude_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Latitude: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_current_location_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_current_location" />
+            <TextView
+                android:id="@+id/text_current_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="@+id/text_current_location_label"
+                app:layout_constraintStart_toStartOf="@+id/text_current_location_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_current_location_label"
+                tools:text="Ivano - Frankivsk" />
 
-    <TextView
-        android:id="@+id/text_latitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:textSize="20sp"
-        app:layout_constraintBaseline_toBaselineOf="@+id/text_latitude_label"
-        app:layout_constraintStart_toEndOf="@+id/text_latitude_label"
-        tools:text="48.9225224" />
+            <TextView
+                android:id="@+id/text_latitude_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Latitude: "
+                android:textSize="20sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintEnd_toStartOf="@+id/text_latitude"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="@+id/text_current_location_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_current_location" />
 
-    <TextView
-        android:id="@+id/text_longitude_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Longitude: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_latitude_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_latitude_label" />
+            <TextView
+                android:id="@+id/text_latitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:textSize="20sp"
+                app:layout_constraintBaseline_toBaselineOf="@+id/text_latitude_label"
+                app:layout_constraintEnd_toEndOf="@+id/text_current_location_label"
+                app:layout_constraintStart_toEndOf="@+id/text_latitude_label"
+                tools:text="48.9225224" />
 
-    <TextView
-        android:id="@+id/text_longitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:textSize="20sp"
-        app:layout_constraintBaseline_toBaselineOf="@+id/text_longitude_label"
-        app:layout_constraintStart_toEndOf="@+id/text_longitude_label"
-        tools:text="24.7103188" />
+            <TextView
+                android:id="@+id/text_longitude_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="Longitude: "
+                android:textSize="20sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintStart_toStartOf="@+id/text_latitude_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_latitude_label" />
 
-    <TextView
-        android:id="@+id/text_date_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_longitude_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_longitude_label"
-        android:text="Date: " />
+            <TextView
+                android:id="@+id/text_longitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:textSize="20sp"
+                app:layout_constraintBaseline_toBaselineOf="@+id/text_longitude_label"
+                app:layout_constraintStart_toEndOf="@+id/text_longitude_label"
+                tools:text="24.7103188" />
 
-    <TextView
-        android:id="@+id/text_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:textSize="20sp"
-        app:layout_constraintBaseline_toBaselineOf="@+id/text_date_label"
-        app:layout_constraintStart_toEndOf="@+id/text_date_label"
-        tools:text="30.03.2019" />
+            <TextView
+                android:id="@+id/text_date_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="Date: "
+                android:textSize="20sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintStart_toStartOf="@+id/text_longitude_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_longitude_label" />
 
-    <Button
-        android:id="@+id/btn_change_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Change date"
-        app:layout_constraintEnd_toEndOf="@+id/text_date"
-        app:layout_constraintStart_toStartOf="@+id/text_date_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_date_label"
-        android:onClick="setDate"/>
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:textSize="20sp"
+                app:layout_constraintBaseline_toBaselineOf="@+id/text_date_label"
+                app:layout_constraintStart_toEndOf="@+id/text_date_label"
+                tools:text="30.03.2019" />
 
-    <TextView
-        android:id="@+id/text_sunrise_time_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="30dp"
-        android:text="Sunrise time: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_change_date" />
+            <Button
+                android:id="@+id/btn_change_date"
+                android:theme="@style/AppTheme.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:onClick="setDate"
+                android:text="Change date"
+                app:layout_constraintStart_toStartOf="@+id/text_date_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_date_label" />
 
-    <TextView
-        android:id="@+id/text_sunrise_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_sunrise_time_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_sunrise_time_label"
-        tools:text="5:48:48 AM" />
+            <TextView
+                android:id="@+id/text_sunrise_time_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="23dp"
+                android:text="Sunrise time: "
+                android:textSize="20sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btn_change_date" />
 
-    <TextView
-        android:id="@+id/text_sunset_time_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Sunset time: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_sunrise_time_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_sunrise_time" />
+            <TextView
+                android:id="@+id/text_sunrise_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                app:layout_constraintStart_toStartOf="@+id/text_sunrise_time_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_sunrise_time_label"
+                tools:text="5:48:48 AM" />
 
-    <TextView
-        android:id="@+id/text_sunset_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@+id/text_sunset_time_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_sunset_time_label"
-        tools:text="8:46:30 PM" />
+            <TextView
+                android:id="@+id/text_sunset_time_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="Sunset time: "
+                android:textSize="20sp"
+                android:textColor="@color/colorDark"
+                app:layout_constraintStart_toStartOf="@+id/text_sunrise_time_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_sunrise_time" />
 
-    <TextView
-        android:id="@+id/text_attribution_link"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"
-        android:textColorLink="@color/colorLink"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_sunset_time"
-        tools:text="Link" />
+            <TextView
+                android:id="@+id/text_sunset_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                app:layout_constraintStart_toStartOf="@+id/text_sunset_time_label"
+                app:layout_constraintTop_toBottomOf="@+id/text_sunset_time_label"
+                tools:text="8:46:30 PM" />
 
-    </android.support.constraint.ConstraintLayout>
+            <TextView
+                android:id="@+id/text_attribution_link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="23dp"
+                android:layout_marginBottom="30dp"
+                android:textColorLink="@color/colorLink"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/text_sunset_time"
+                tools:text="Link" />
 
-</ScrollView>
+
+        </android.support.constraint.ConstraintLayout>
+    </ScrollView>
+</android.support.v4.widget.SwipeRefreshLayout>
