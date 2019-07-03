@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +27,7 @@ import com.task.sunrisesunset.utils.DateUtil;
 import com.task.sunrisesunset.utils.UIUtil;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -210,9 +210,17 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
         if (isDatePickerUsed) {
             isDatePickerUsed = false;
             UIUtil.hideProgressBar(mProgressBar, mContent);
+            Date selectedDate = DateUtil.parseDate(mDate.getText().toString());
+            if (selectedDate == null) {
+                Date date = new Date();
+                mDateCalendar.setTime(date);
+                setInitialDate();
+            } else {
+                mDateCalendar.setTime(selectedDate);
+            }
         }
         UIUtil.makeTouchable(NewLocationActivity.this);
-        Toast.makeText(this, getString(R.string.message_network_issue), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.message_network_issue, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -226,7 +234,7 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
     }
 
     public void setDate(View view) {
-        DateUtil.getDatePickerDialog(this, datePickerListener, mDateCalendar);
+        DateUtil.showDatePickerDialog(this, datePickerListener, mDateCalendar);
     }
 
     DatePickerDialog.OnDateSetListener datePickerListener = new DatePickerDialog.OnDateSetListener() {

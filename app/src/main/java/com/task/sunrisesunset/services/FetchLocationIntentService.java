@@ -24,7 +24,7 @@ public class FetchLocationIntentService extends IntentService {
     public static final int FAILURE_RESULT = 1;
     public static final String PACKAGE_NAME =
             "package com.task.sunrisesunset.services";
-    public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
+    public static final String RECEIVER = PACKAGE_NAME + ".LOCATION_RECEIVER";
     public static final String RESULT_DATA_KEY = PACKAGE_NAME +
             ".RESULT_DATA_KEY";
     public static final String RESULT_ERROR_MESSAGE_KEY = PACKAGE_NAME +

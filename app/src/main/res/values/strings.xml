@@ -17,6 +17,7 @@
     <string name="search_location_hint">Search location</string>
     <string name="action_add_location">Add location</string>
     <string name="action_share_location">Share</string>
-    <string name="message_network_issue">Network issue occurred</string>
+    <string name="message_network_issue">Network issue has occurred</string>
+    <string name="message_location_issue">Location issue has occurred</string>
     <string name="label_location">Location:</string>
 </resources>
