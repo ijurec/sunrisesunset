@@ -31,12 +31,24 @@ public class DateUtil {
         return sdf.format(date);
     }
 
+    public static Date parseDate(String time) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM.dd.yyyy", Locale.US);
+        Date date;
+        try {
+            date = sdf.parse(time);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return date;
+    }
+
     public static String formatDateForApi(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         return sdf.format(date);
     }
 
-    public static void getDatePickerDialog(Context context, DatePickerDialog.OnDateSetListener datePickerListener, Calendar calendar) {
+    public static void showDatePickerDialog(Context context, DatePickerDialog.OnDateSetListener datePickerListener, Calendar calendar) {
         new DatePickerDialog(context, R.style.DatePickerTheme, datePickerListener,
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),

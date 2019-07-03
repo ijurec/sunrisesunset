@@ -14,6 +14,6 @@ public interface SunriseSunsetApi {
     String FORMATTED_PARAM = "formatted";
 
     @GET("json")
-    Call<SunriseSunsetInfoResult> getSunriseSunsetInfo(@Query(LAT_PARAM) String lat, @Query(LNG_PARAM) String lng,
+    Call<SunriseSunsetInfoResult> getSunriseSunsetInfo(@Query(LAT_PARAM) double lat, @Query(LNG_PARAM) double lng,
                                                        @Query(DATE_PARAM) String date, @Query(FORMATTED_PARAM) int formatted);
 }

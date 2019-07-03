@@ -24,7 +24,7 @@ public class FetchAddressIntentService extends IntentService {
     public static final int FAILURE_RESULT = 1;
     public static final String PACKAGE_NAME =
             "package com.task.sunrisesunset.services";
-    public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
+    public static final String RECEIVER = PACKAGE_NAME + ".ADDRESS_RECEIVER";
     public static final String RESULT_DATA_KEY = PACKAGE_NAME +
             ".RESULT_DATA_KEY";
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
@@ -78,8 +78,8 @@ public class FetchAddressIntentService extends IntentService {
             deliverResultToReceiver(FAILURE_RESULT, errorMessage);
         } else {
             Address address = addresses.get(0);
-//            String cityName = address.getLocality();
-            String cityName = address.getAddressLine(0);
+//            String cityName = address.getAddressLine(0);
+            String cityName = address.getLocality();
 
             Log.i(TAG, getString(R.string.address_found));
             deliverResultToReceiver(SUCCESS_RESULT, cityName);

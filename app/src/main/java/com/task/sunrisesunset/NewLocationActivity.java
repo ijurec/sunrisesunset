@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +27,7 @@ import com.task.sunrisesunset.utils.DateUtil;
 import com.task.sunrisesunset.utils.UIUtil;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -60,6 +60,11 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
 
     private String mQuery;
     private Calendar mDateCalendar;
+
+    private Location mLocation;
+
+    private boolean isError;
+    private String mErrorMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,21 +158,23 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
                 return;
             }
 
-            Location location = resultData.getParcelable(FetchLocationIntentService.RESULT_DATA_KEY);
-            if (location != null) {
+            mLocation = resultData.getParcelable(FetchLocationIntentService.RESULT_DATA_KEY);
+            if (mLocation != null) {
+                isError = false;
                 mCurrentLocation.setText(mQuery);
-                mLatitude.setText(String.valueOf(location.getLatitude()));
-                mLongitude.setText(String.valueOf(location.getLongitude()));
+                mLatitude.setText(String.valueOf(mLocation.getLatitude()));
+                mLongitude.setText(String.valueOf(mLocation.getLongitude()));
                 requestSunriseSunsetTimes();
             } else {
-                String errorMessage = resultData.getString(FetchLocationIntentService.RESULT_ERROR_MESSAGE_KEY);
+                isError = true;
+                mErrorMessage = resultData.getString(FetchLocationIntentService.RESULT_ERROR_MESSAGE_KEY);
                 if (!isDataLoaded) {
                     UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
                 }
                 UIUtil.makeTouchable(NewLocationActivity.this);
                 isRefreshingData = false;
                 mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(NewLocationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                Toast.makeText(NewLocationActivity.this, mErrorMessage, Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -177,10 +184,18 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
             UIUtil.showProgressBar(mProgressBar, mContent);
             UIUtil.makeUnTouchable(this);
         }
-        Call<SunriseSunsetInfoResult> sunriseSunsetInfoResult = SunriseSunsetApp.getSunriseSunsetApi()
-                .getSunriseSunsetInfo(mLatitude.getText().toString(), mLongitude.getText().toString(),
-                        DateUtil.formatDateForApi(mDateCalendar.getTime()), RESPONSE_WITHOUT_FORMATTING);
-        sunriseSunsetInfoResult.enqueue(this);
+
+        if (!isError) {
+            Call<SunriseSunsetInfoResult> sunriseSunsetInfoResult = SunriseSunsetApp.getSunriseSunsetApi()
+                    .getSunriseSunsetInfo(mLocation.getLatitude(), mLocation.getLongitude(),
+                            DateUtil.formatDateForApi(mDateCalendar.getTime()), RESPONSE_WITHOUT_FORMATTING);
+            sunriseSunsetInfoResult.enqueue(this);
+        } else {
+            UIUtil.hideProgressBar(mProgressBar, mContent);
+            UIUtil.makeTouchable(this);
+            Toast.makeText(NewLocationActivity.this, mErrorMessage +
+                    ", please refresh before changing date.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -210,9 +225,17 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
         if (isDatePickerUsed) {
             isDatePickerUsed = false;
             UIUtil.hideProgressBar(mProgressBar, mContent);
+            Date selectedDate = DateUtil.parseDate(mDate.getText().toString());
+            if (selectedDate == null) {
+                Date date = new Date();
+                mDateCalendar.setTime(date);
+                setInitialDate();
+            } else {
+                mDateCalendar.setTime(selectedDate);
+            }
         }
         UIUtil.makeTouchable(NewLocationActivity.this);
-        Toast.makeText(this, getString(R.string.message_network_issue), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.message_network_issue, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -226,7 +249,7 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
     }
 
     public void setDate(View view) {
-        DateUtil.getDatePickerDialog(this, datePickerListener, mDateCalendar);
+        DateUtil.showDatePickerDialog(this, datePickerListener, mDateCalendar);
     }
 
     DatePickerDialog.OnDateSetListener datePickerListener = new DatePickerDialog.OnDateSetListener() {
