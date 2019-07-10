@@ -48,6 +48,7 @@ import com.task.sunrisesunset.services.FetchAddressIntentService;
 import com.task.sunrisesunset.utils.DateUtil;
 import com.task.sunrisesunset.utils.GooglePlayServicesUtil;
 import com.task.sunrisesunset.utils.NumberUtil;
+import com.task.sunrisesunset.utils.ShareUtil;
 import com.task.sunrisesunset.utils.UIUtil;
 
 import java.util.Calendar;
@@ -56,6 +57,8 @@ import java.util.Date;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static com.task.sunrisesunset.utils.UIUtil.*;
 
 public class MainActivity extends AppCompatActivity implements Callback<SunriseSunsetInfoResult>,
         SearchView.OnQueryTextListener, SwipeRefreshLayout.OnRefreshListener {
@@ -128,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)) {
             startLocationUpdates();
         } else {
-            UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+            showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
         }
     }
 
@@ -161,19 +164,30 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.action_show_locations) {
-            Intent intent = new Intent(this, LocationsActivity.class);
-            startActivity(intent);
-            return true;
+        switch (id) {
+            case R.id.action_show_locations:
+                Intent intent = new Intent(this, LocationsActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.action_share_location:
+                if (mLocation != null && mSunriseSunsetResult != null) {
+                    startActivity(ShareUtil.createShareForecastIntent(this,
+                            mCurrentLocation, mDate, mSunrise, mSunset));
+                } else {
+                    Toast.makeText(this, R.string.message_share_issue, Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            case R.id.action_clear_search_history:
+                showConfirmationDialog(this);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void startLocationUpdates() {
-        UIUtil.makeUnTouchable(this);
+        makeUnTouchable(this);
         if (!isRefreshingData) {
-            UIUtil.showProgressBar(mProgressBar, mContent);
+            showProgressBar(mProgressBar, mContent);
         }
 
         final LocationRequest locationRequest = LocationRequest.create();
@@ -247,11 +261,11 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
                 requestSunriseSunsetTimes();
             } else {
                 if (!isDataLoaded) {
-                    UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+                    showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
                 } else if (isDatePickerUsed) {
                     setCorrectPickerDateValue();
                 }
-                UIUtil.makeTouchable(MainActivity.this);
+                makeTouchable(MainActivity.this);
                 mSwipeRefreshLayout.setRefreshing(false);
                 Toast.makeText(MainActivity.this, "Location issue has occurred", Toast.LENGTH_SHORT).show();
             }
@@ -274,14 +288,14 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
     @Override
     public void onFailure(Call<SunriseSunsetInfoResult> call, Throwable t) {
         if (isDataLoaded) {
-            UIUtil.hideProgressBar(mProgressBar, mContent);
+            hideProgressBar(mProgressBar, mContent);
         } else {
-            UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+            showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
         }
         if (isDatePickerUsed) {
             setCorrectPickerDateValue();
         }
-        UIUtil.makeTouchable(this);
+        makeTouchable(this);
         mSwipeRefreshLayout.setRefreshing(false);
         Toast.makeText(this, R.string.message_network_issue, Toast.LENGTH_SHORT).show();
     }
@@ -309,9 +323,9 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
                 setInitialDate();
             }
             mSwipeRefreshLayout.setRefreshing(false);
-            UIUtil.hideProgressBar(mProgressBar, mContent);
-            UIUtil.hideEmptySearchLabel(mEmptySearchLabel);
-            UIUtil.makeTouchable(MainActivity.this);
+            hideProgressBar(mProgressBar, mContent);
+            hideEmptySearchLabel(mEmptySearchLabel);
+            makeTouchable(MainActivity.this);
         }
     };
 
@@ -321,12 +335,12 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
             startLocationUpdates();
         } else {
             if (!isDataLoaded) {
-                UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+                showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
             } else if (isDatePickerUsed) {
                 setCorrectPickerDateValue();
             }
             mSwipeRefreshLayout.setRefreshing(false);
-            UIUtil.makeTouchable(this);
+            makeTouchable(this);
         }
     }
 
@@ -339,8 +353,8 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     startLocationUpdates();
                 } else {
-                    UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-                    UIUtil.makeTouchable(this);
+                    showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+                    makeTouchable(this);
                     mSwipeRefreshLayout.setRefreshing(false);
                 }
             }
@@ -381,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         } else {
             mDateCalendar.setTime(selectedDate);
         }
-        UIUtil.hideProgressBar(mProgressBar, mContent);
+        hideProgressBar(mProgressBar, mContent);
     }
 
     @Override

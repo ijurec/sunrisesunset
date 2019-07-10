@@ -3,14 +3,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.task.sunrisesunset.MainActivity" >
 
-    <item android:id="@+id/action_show_locations"
-        android:title="@string/action_show_locations"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
-
     <item android:id="@+id/action_search_meal"
         android:title="@string/action_search_meal"
         android:icon="@drawable/ic_search_black_24dp"
         app:showAsAction="always|collapseActionView"
         app:actionViewClass="android.support.v7.widget.SearchView" />
+
+    <item android:id="@+id/action_show_locations"
+        android:title="@string/action_show_locations"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        android:visible="false"/>
+
+    <item android:id="@+id/action_share_location"
+        android:title="@string/action_share_location"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_share_black_24dp"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_clear_search_history"
+        android:title="@string/action_clear_search_history"
+        android:orderInCategory="200"
+        android:icon="@drawable/ic_share_black_24dp"
+        app:showAsAction="never"/>
+
 </menu>

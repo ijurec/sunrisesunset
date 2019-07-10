@@ -43,6 +43,11 @@
         <service
             android:name=".services.FetchLocationIntentService"
             android:exported="false"/>
+
+        <provider
+            android:authorities="com.task.sunrisesunset.data.SunriseSunsetSuggestionProvider"
+            android:name=".data.SunriseSunsetSuggestionProvider"
+            android:exported="false" />
     </application>
 
 </manifest>
