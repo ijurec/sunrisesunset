@@ -13,7 +13,7 @@
     <string name="address_found">The address was found</string>
     <string name="coordinates_found">The coordinates were found</string>
     <string name="invalid_address_param_used">Invalid address parameter are used</string>
-    <string name="action_search_meal">Search a meal</string>
+    <string name="action_search_location">Search a location</string>
     <string name="search_location_hint">Search location</string>
     <string name="action_add_location">Add location</string>
     <string name="action_share_location">Share</string>

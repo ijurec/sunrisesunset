@@ -1,18 +1,14 @@
 package com.task.sunrisesunset;
 
 import android.app.DatePickerDialog;
-import android.app.SearchManager;
 import android.content.Intent;
-import android.location.Location;
-import android.os.Handler;
-import android.os.ResultReceiver;
-import android.provider.SearchRecentSuggestions;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,9 +18,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.libraries.places.api.model.Place;
 import com.task.sunrisesunset.data.SunriseSunsetInfoResult;
-import com.task.sunrisesunset.data.SunriseSunsetSuggestionProvider;
-import com.task.sunrisesunset.services.FetchLocationIntentService;
 import com.task.sunrisesunset.utils.DateUtil;
 import com.task.sunrisesunset.utils.NumberUtil;
 import com.task.sunrisesunset.utils.ShareUtil;
@@ -36,8 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.task.sunrisesunset.MainActivity.DATE_KEY;
-import static com.task.sunrisesunset.MainActivity.RESPONSE_WITHOUT_FORMATTING;
+import static com.task.sunrisesunset.MainActivity.*;
 import static com.task.sunrisesunset.utils.UIUtil.*;
 
 public class NewLocationActivity extends AppCompatActivity implements Callback<SunriseSunsetInfoResult>,
@@ -62,13 +57,8 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
     private boolean isRefreshingData;
     private boolean isDataLoaded;
 
-    private String mQuery;
     private Calendar mDateCalendar;
-
-    private Location mLocation;
-
-    private boolean isError;
-    private String mErrorMessage;
+    private LatLng mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,11 +102,13 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
 
         Intent intent = getIntent();
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            mQuery = intent.getStringExtra(SearchManager.QUERY).trim();
-            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
-                    SunriseSunsetSuggestionProvider.AUTHORITY, SunriseSunsetSuggestionProvider.MODE);
-            suggestions.saveRecentQuery(mQuery, null);
-            getLocationCoordinates(mQuery);
+            Place place = intent.getParcelableExtra(PLACE_DATA_KEY);
+            String address = place.getAddress();
+            mLocation = place.getLatLng();
+            mCurrentLocation.setText(address);
+            mLatitude.setText(NumberUtil.roundingRank(mLocation.latitude));
+            mLongitude.setText(NumberUtil.roundingRank(mLocation.longitude));
+            requestSunriseSunsetTimes();
         }
     }
 
@@ -155,59 +147,16 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
         super.onSaveInstanceState(outState);
     }
 
-    private void getLocationCoordinates(String query) {
-        if(!isRefreshingData) {
+    private void requestSunriseSunsetTimes() {
+        if(!isRefreshingData || isDatePickerUsed) {
             showProgressBar(mProgressBar, mContent);
         }
         makeUnTouchable(this);
-        FetchLocationIntentService.startFetchLocationIntentService(this, resultLocationReceiver, query);
-    }
 
-    private ResultReceiver resultLocationReceiver = new ResultReceiver(new Handler()) {
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-            if (resultData == null) {
-                return;
-            }
-
-            mLocation = resultData.getParcelable(FetchLocationIntentService.RESULT_DATA_KEY);
-            if (mLocation != null) {
-                isError = false;
-                mCurrentLocation.setText(mQuery);
-                mLatitude.setText(NumberUtil.roundingRank(mLocation.getLatitude()));
-                mLongitude.setText(NumberUtil.roundingRank(mLocation.getLongitude()));
-                requestSunriseSunsetTimes();
-            } else {
-                isError = true;
-                mErrorMessage = resultData.getString(FetchLocationIntentService.RESULT_ERROR_MESSAGE_KEY);
-                if (!isDataLoaded) {
-                    showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-                }
-                makeTouchable(NewLocationActivity.this);
-                isRefreshingData = false;
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(NewLocationActivity.this, mErrorMessage, Toast.LENGTH_LONG).show();
-            }
-        }
-    };
-
-    private void requestSunriseSunsetTimes() {
-        if (isDatePickerUsed) {
-            showProgressBar(mProgressBar, mContent);
-            makeUnTouchable(this);
-        }
-
-        if (!isError) {
-            Call<SunriseSunsetInfoResult> sunriseSunsetInfoResult = SunriseSunsetApp.getSunriseSunsetApi()
-                    .getSunriseSunsetInfo(mLocation.getLatitude(), mLocation.getLongitude(),
-                            DateUtil.formatDateForApi(mDateCalendar.getTime()), RESPONSE_WITHOUT_FORMATTING);
-            sunriseSunsetInfoResult.enqueue(this);
-        } else {
-            hideProgressBar(mProgressBar, mContent);
-            makeTouchable(this);
-            Toast.makeText(NewLocationActivity.this, mErrorMessage +
-                    ", please refresh before changing date.", Toast.LENGTH_LONG).show();
-        }
+        Call<SunriseSunsetInfoResult> sunriseSunsetInfoResult = SunriseSunsetApp.getSunriseSunsetApi()
+                .getSunriseSunsetInfo(mLocation.latitude, mLocation.longitude,
+                        DateUtil.formatDateForApi(mDateCalendar.getTime()), RESPONSE_WITHOUT_FORMATTING);
+        sunriseSunsetInfoResult.enqueue(this);
     }
 
     @Override
@@ -246,6 +195,7 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
                 mDateCalendar.setTime(selectedDate);
             }
         }
+        Log.e(TAG, t.getMessage());
         makeTouchable(NewLocationActivity.this);
         Toast.makeText(this, R.string.message_network_issue, Toast.LENGTH_SHORT).show();
     }
@@ -253,7 +203,7 @@ public class NewLocationActivity extends AppCompatActivity implements Callback<S
     @Override
     public void onRefresh() {
         isRefreshingData = true;
-        getLocationCoordinates(mQuery);
+        requestSunriseSunsetTimes();
     }
 
     private void setInitialDate() {

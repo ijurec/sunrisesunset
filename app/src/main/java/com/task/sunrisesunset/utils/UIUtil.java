@@ -1,19 +1,11 @@
 package com.task.sunrisesunset.utils;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.provider.SearchRecentSuggestions;
-import android.support.v7.app.AlertDialog;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
-import com.task.sunrisesunset.R;
-import com.task.sunrisesunset.data.SunriseSunsetSuggestionProvider;
 
 public class UIUtil {
 
@@ -44,55 +36,6 @@ public class UIUtil {
     public static void makeTouchable(Activity context) {
         context.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
-
-    public static void showConfirmationDialog(final Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AlertDialogCustom));
-        builder.setMessage(R.string.message_clear_search_history)
-                .setPositiveButton(R.string.message_ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        SearchRecentSuggestions suggestions = new SearchRecentSuggestions(context,
-                                SunriseSunsetSuggestionProvider.AUTHORITY, SunriseSunsetSuggestionProvider.MODE);
-                        suggestions.clearHistory();
-                    }
-                })
-                .setNegativeButton(R.string.message_cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User cancelled the dialog
-                    }
-                });
-        builder.create().show();
-    }
-
-//    public static class NoticeDialogFragment extends DialogFragment {
-//
-//        private Context mContext;
-//
-//        @Override
-//        public void onAttach(Context context) {
-//            super.onAttach(context);
-//                mContext = context;
-//        }
-//
-//        @Override
-//        public Dialog onCreateDialog(Bundle savedInstanceState) {
-//            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-//            builder.setMessage(R.string.message_clear_search_history)
-//                    .setPositiveButton(R.string.message_ok, new DialogInterface.OnClickListener() {
-//                        public void onClick(DialogInterface dialog, int id) {
-//                            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(mContext,
-//                                    SunriseSunsetSuggestionProvider.AUTHORITY, SunriseSunsetSuggestionProvider.MODE);
-//                            suggestions.clearHistory();
-//                        }
-//                    })
-//                    .setNegativeButton(R.string.message_cancel, new DialogInterface.OnClickListener() {
-//                        public void onClick(DialogInterface dialog, int id) {
-//                            // User cancelled the dialog
-//                        }
-//                    });
-//            return builder.create();
-//
-//        }
-//    }
 
 //    public static class DatePickerFragment extends DialogFragment {
 //

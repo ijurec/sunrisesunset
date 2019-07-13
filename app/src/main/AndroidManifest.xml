@@ -3,7 +3,6 @@
     package="com.task.sunrisesunset">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".SunriseSunsetApp"
@@ -23,31 +22,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- enable the search dialog to send searches to NewLocationActivity -->
-            <meta-data android:name="android.app.default_searchable"
-                android:value=".NewLocationActivity"/>
         </activity>
         <activity android:name=".NewLocationActivity"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-            </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
         </activity>
         <activity android:name=".LocationsActivity" />
 
-        <service
-            android:name=".services.FetchAddressIntentService"
-            android:exported="false" />
-        <service
-            android:name=".services.FetchLocationIntentService"
-            android:exported="false"/>
-
-        <provider
-            android:authorities="com.task.sunrisesunset.data.SunriseSunsetSuggestionProvider"
-            android:name=".data.SunriseSunsetSuggestionProvider"
-            android:exported="false" />
     </application>
 
 </manifest>

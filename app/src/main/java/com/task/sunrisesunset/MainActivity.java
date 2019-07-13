@@ -2,14 +2,11 @@ package com.task.sunrisesunset;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
-import android.app.SearchManager;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -17,7 +14,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -31,28 +27,38 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.PlaceLikelihood;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.task.sunrisesunset.data.SunriseSunsetInfoResult;
-import com.task.sunrisesunset.services.FetchAddressIntentService;
 import com.task.sunrisesunset.utils.DateUtil;
 import com.task.sunrisesunset.utils.GooglePlayServicesUtil;
 import com.task.sunrisesunset.utils.NumberUtil;
 import com.task.sunrisesunset.utils.ShareUtil;
-import com.task.sunrisesunset.utils.UIUtil;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -61,12 +67,14 @@ import retrofit2.Response;
 import static com.task.sunrisesunset.utils.UIUtil.*;
 
 public class MainActivity extends AppCompatActivity implements Callback<SunriseSunsetInfoResult>,
-        SearchView.OnQueryTextListener, SwipeRefreshLayout.OnRefreshListener {
+        SwipeRefreshLayout.OnRefreshListener {
 
     public static final int RESPONSE_WITHOUT_FORMATTING = 0;
     public static final int REQUEST_CHECK_SETTINGS = 1;
     public static final int PERMISSION_REQUEST_FINE_LOCATION = 2;
     public static final String DATE_KEY = "date_key";
+    public static final String PLACE_DATA_KEY = "place_data";
+    public static final int AUTOCOMPLETE_REQUEST_CODE = 5;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -89,9 +97,10 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
 
     private Calendar mDateCalendar;
 
-    private FusedLocationProviderClient mFusedLocationClient;
-    private Location mLocation;
+    private PlacesClient mPlacesClient;
+    private LatLng mLocation;
     private SunriseSunsetInfoResult mSunriseSunsetResult;
+    private String mLocationAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,8 +126,6 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         String text = "<a href='" + getString(R.string.attribution_url) + "'>  " + "Visit Sunrise Sunset" + "  </a>";
         mAttributionLink.setText(Html.fromHtml(text));
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         if (savedInstanceState != null && savedInstanceState.containsKey(DATE_KEY)) {
             mDateCalendar = (Calendar) savedInstanceState.getSerializable(DATE_KEY);
         } else {
@@ -127,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         setInitialDate();
 
         mSwipeRefreshLayout.setOnRefreshListener(this);
+
+        Places.initialize(getApplicationContext(), SunriseSunsetApp.invokeNativeFunction());
+        mPlacesClient = Places.createClient(this);
 
         if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)) {
             startLocationUpdates();
@@ -139,32 +149,16 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search_meal).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setSubmitButtonEnabled(true);
-        searchView.setOnQueryTextListener(this);
         return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        Intent intent = new Intent(this, NewLocationActivity.class);
-        intent.setAction(Intent.ACTION_SEARCH);
-        intent.putExtra(SearchManager.QUERY, query);
-        startActivity(intent);
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
+            case R.id.action_search_location:
+                showAutocompleteWidget();
+                return true;
             case R.id.action_show_locations:
                 Intent intent = new Intent(this, LocationsActivity.class);
                 startActivity(intent);
@@ -176,9 +170,6 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
                 } else {
                     Toast.makeText(this, R.string.message_share_issue, Toast.LENGTH_SHORT).show();
                 }
-                return true;
-            case R.id.action_clear_search_history:
-                showConfirmationDialog(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -203,30 +194,44 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                List<Place.Field> placeFields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
+                FindCurrentPlaceRequest request =
+                        FindCurrentPlaceRequest.builder(placeFields).build();
                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                         Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationCallback, null);
-//                    mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-//                        @Override
-//                        public void onSuccess(Location location) {
-//                            // Got last known location. In some rare situations this can be null.
-//                            mLocation = location;
-//                            if (mLocation != null) {
-//                                mLatitude.setText(NumberUtil.roundingRank(mLocation.getLatitude()));
-//                                mLongitude.setText(NumberUtil.roundingRank(mLocation.getLongitude()));
-//                                requestSunriseSunsetTimes();
-//                            } else {
-//                                if (!isDataLoaded) {
-//                                    UIUtil.showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-//                                } else if (isDatePickerUsed) {
-//                                    setCorrectPickerDateValue();
-//                                }
-//                                UIUtil.makeTouchable(MainActivity.this);
-//                                mSwipeRefreshLayout.setRefreshing(false);
-//                                Toast.makeText(MainActivity.this, "Location issue has occurred", Toast.LENGTH_SHORT).show();
-//                            }
-//                        }
-//                    });
+                    Task<FindCurrentPlaceResponse> placeResponse = mPlacesClient.findCurrentPlace(request);
+                    placeResponse.addOnCompleteListener(new OnCompleteListener<FindCurrentPlaceResponse>() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+                            if (task.isSuccessful()) {
+                                FindCurrentPlaceResponse response = (FindCurrentPlaceResponse) task.getResult();
+                                PlaceLikelihood placeLikelihood = response.getPlaceLikelihoods().get(0);
+                                mLocationAddress = placeLikelihood.getPlace().getAddress();
+                                mLocation = placeLikelihood.getPlace().getLatLng();
+                                if (mLocation != null) {
+                                    requestSunriseSunsetTimes();
+                                } else {
+                                    if (!isDataLoaded) {
+                                        showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+                                    } else if (isDatePickerUsed) {
+                                        setCorrectPickerDateValue();
+                                    }
+                                    makeTouchable(MainActivity.this);
+                                    mSwipeRefreshLayout.setRefreshing(false);
+                                    Toast.makeText(MainActivity.this, "Location issue has occurred", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Exception exception = task.getException();
+                                if (exception instanceof ApiException) {
+                                    ApiException apiException = (ApiException) exception;
+                                    String exceptionMessage = "Place not found: " + apiException.getStatusCode();
+                                    Log.e(TAG, exceptionMessage);
+                                    onRequestFailed(exceptionMessage);
+                                } else {
+                                    onRequestFailed(exception.getMessage());
+                                }
+                            }
+                        }});
                 } else {
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -252,29 +257,9 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         });
     }
 
-    private LocationCallback mLocationCallback = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            if (locationResult == null) return;
-            mLocation = locationResult.getLastLocation();
-            if (mLocation != null) {
-                requestSunriseSunsetTimes();
-            } else {
-                if (!isDataLoaded) {
-                    showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-                } else if (isDatePickerUsed) {
-                    setCorrectPickerDateValue();
-                }
-                makeTouchable(MainActivity.this);
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(MainActivity.this, "Location issue has occurred", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
-
     private void requestSunriseSunsetTimes() {
         Call<SunriseSunsetInfoResult> sunriseSunsetInfoResult = SunriseSunsetApp.getSunriseSunsetApi()
-                .getSunriseSunsetInfo(mLocation.getLatitude(), mLocation.getLongitude(),
+                .getSunriseSunsetInfo(mLocation.latitude, mLocation.longitude,
                         DateUtil.formatDateForApi(mDateCalendar.getTime()), RESPONSE_WITHOUT_FORMATTING);
         sunriseSunsetInfoResult.enqueue(this);
     }
@@ -282,65 +267,60 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
     @Override
     public void onResponse(Call<SunriseSunsetInfoResult> call, Response<SunriseSunsetInfoResult> response) {
         mSunriseSunsetResult = response.body();
-        FetchAddressIntentService.startFetchAddressIntentService(this, resultAddressReceiver, mLocation);
+        mCurrentLocation.setText(mLocationAddress);
+        mLatitude.setText(NumberUtil.roundingRank(mLocation.latitude));
+        mLongitude.setText(NumberUtil.roundingRank(mLocation.longitude));
+        mSunrise.setText(DateUtil.convertUtcToLocal(mSunriseSunsetResult.getResult().getSunrise()));
+        mSunset.setText(DateUtil.convertUtcToLocal(mSunriseSunsetResult.getResult().getSunset()));
+        isRefreshingData = false;
+        isDataLoaded = true;
+        if (isDatePickerUsed) {
+            isDatePickerUsed = false;
+            setInitialDate();
+        }
+        mSwipeRefreshLayout.setRefreshing(false);
+        hideProgressBar(mProgressBar, mContent);
+        hideEmptySearchLabel(mEmptySearchLabel);
+        makeTouchable(MainActivity.this);
     }
 
     @Override
     public void onFailure(Call<SunriseSunsetInfoResult> call, Throwable t) {
-        if (isDataLoaded) {
-            hideProgressBar(mProgressBar, mContent);
-        } else {
-            showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-        }
-        if (isDatePickerUsed) {
-            setCorrectPickerDateValue();
-        }
-        makeTouchable(this);
-        mSwipeRefreshLayout.setRefreshing(false);
-        Toast.makeText(this, R.string.message_network_issue, Toast.LENGTH_SHORT).show();
+        onRequestFailed(getString(R.string.message_network_issue));
     }
-
-    private ResultReceiver resultAddressReceiver = new ResultReceiver(new Handler()) {
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-            if (resultData == null) {
-                return;
-            }
-
-            String addressOutput = resultData.getString(FetchAddressIntentService.RESULT_DATA_KEY);
-            if (addressOutput == null) {
-                addressOutput = "";
-            }
-            mCurrentLocation.setText(addressOutput);
-            mLatitude.setText(NumberUtil.roundingRank(mLocation.getLatitude()));
-            mLongitude.setText(NumberUtil.roundingRank(mLocation.getLongitude()));
-            mSunrise.setText(DateUtil.convertUtcToLocal(mSunriseSunsetResult.getResult().getSunrise()));
-            mSunset.setText(DateUtil.convertUtcToLocal(mSunriseSunsetResult.getResult().getSunset()));
-            isRefreshingData = false;
-            isDataLoaded = true;
-            if (resultCode != FetchAddressIntentService.FAILURE_RESULT && isDatePickerUsed) {
-                isDatePickerUsed = false;
-                setInitialDate();
-            }
-            mSwipeRefreshLayout.setRefreshing(false);
-            hideProgressBar(mProgressBar, mContent);
-            hideEmptySearchLabel(mEmptySearchLabel);
-            makeTouchable(MainActivity.this);
-        }
-    };
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (resultCode == RESULT_OK) {
-            startLocationUpdates();
-        } else {
-            if (!isDataLoaded) {
-                showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
-            } else if (isDatePickerUsed) {
-                setCorrectPickerDateValue();
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    Place place = Autocomplete.getPlaceFromIntent(data);
+                    Intent intent = new Intent(this, NewLocationActivity.class);
+                    intent.setAction(Intent.ACTION_SEARCH);
+                    intent.putExtra(PLACE_DATA_KEY, place);
+                    startActivity(intent);
+                    Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+                } else {
+                    Toast.makeText(this, R.string.message_location_issue, Toast.LENGTH_SHORT).show();
+                }
+            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                Status status = Autocomplete.getStatusFromIntent(data);
+                String statusMessage = status.getStatusMessage();
+                Log.i(TAG, statusMessage);
+                Toast.makeText(this, statusMessage, Toast.LENGTH_SHORT).show();
             }
-            mSwipeRefreshLayout.setRefreshing(false);
-            makeTouchable(this);
+        } else {
+            if (resultCode == RESULT_OK) {
+                startLocationUpdates();
+            } else {
+                if (!isDataLoaded) {
+                    showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+                } else if (isDatePickerUsed) {
+                    setCorrectPickerDateValue();
+                }
+                mSwipeRefreshLayout.setRefreshing(false);
+                makeTouchable(this);
+            }
         }
     }
 
@@ -385,6 +365,14 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         }
     };
 
+    private void showAutocompleteWidget() {
+        List<Place.Field> fields = Arrays.asList(Place.Field.ADDRESS, Place.Field.LAT_LNG);
+        Intent intent = new Autocomplete.IntentBuilder(
+                AutocompleteActivityMode.OVERLAY, fields)
+                .build(this);
+        startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
+    }
+
     private void setCorrectPickerDateValue() {
         isDatePickerUsed = false;
         Date selectedDate = DateUtil.parseDate(mDate.getText().toString());
@@ -398,16 +386,24 @@ public class MainActivity extends AppCompatActivity implements Callback<SunriseS
         hideProgressBar(mProgressBar, mContent);
     }
 
+    private void onRequestFailed(String messageError) {
+        if (isDataLoaded) {
+            hideProgressBar(mProgressBar, mContent);
+        } else {
+            showEmptySearchLabel(mProgressBar, mEmptySearchLabel);
+        }
+        if (isDatePickerUsed) {
+            setCorrectPickerDateValue();
+        }
+        makeTouchable(MainActivity.this);
+        mSwipeRefreshLayout.setRefreshing(false);
+        Toast.makeText(this, messageError, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putSerializable(DATE_KEY, mDateCalendar);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     @Override

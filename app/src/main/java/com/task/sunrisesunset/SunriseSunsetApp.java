@@ -10,6 +10,12 @@ public class SunriseSunsetApp extends Application {
 
     private static SunriseSunsetApi sSunriseSunsetApi;
 
+    static {
+        System.loadLibrary("native-lib");
+    }
+
+    public native static String invokeNativeFunction();
+
     @Override
     public void onCreate() {
         super.onCreate();
